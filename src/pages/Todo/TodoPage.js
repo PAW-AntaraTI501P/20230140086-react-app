@@ -1,35 +1,46 @@
 // src/pages/TodoPage.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import TodoForm from "../../components/TodoForm.js";
 import TodoList from "../../components/TodoList.js";
+import SearchInput from "../../components/SearchInput.js";
 
 const TodoPage = () => {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchTodos = () => {
-    fetch("/api/todos")
+  const fetchTodos = useCallback((searchQuery) => {
+    setLoading(true);
+    const url = searchQuery
+      ? `/api/todos?search=${encodeURIComponent(searchQuery)}`
+      : "/api/todos";
+
+    fetch(url)
       .then((response) => {
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
-        }
         return response.json();
       })
       .then((data) => {
         setTodos(data.todos);
-        setLoading(false);
+        setError(null);
       })
       .catch((err) => {
         setError(err.message);
-        setLoading(false);
-      });
-  };
-
-  useEffect(() => {
-    fetchTodos();
+        setTodos([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  // useEffect untuk debounce pencarian tidak berubah
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      fetchTodos(searchTerm);
+    }, 500);
+    return () => clearTimeout(timerId);
+  }, [searchTerm, fetchTodos]);
 
   const handleAddTodo = (task) => {
     fetch("/api/todos", {
@@ -125,6 +136,7 @@ const TodoPage = () => {
     >
       <header style={{ textAlign: "center" }}>
         <h1>Aplikasi Todo List</h1>
+        <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         <TodoForm onAddTodo={handleAddTodo} />
         <h2>Daftar Tugas Anda</h2>
         <TodoList
@@ -132,6 +144,7 @@ const TodoPage = () => {
           onToggleCompleted={handleToggleCompleted}
           onDeleteTodo={handleDeleteTodo}
           onUpdateTodo={handleUpdateTodo}
+          
         />
       </header>
     </div>
