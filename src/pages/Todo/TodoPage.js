@@ -1,7 +1,5 @@
 // src/pages/TodoPage.js
-
 import React, { useState, useEffect, useCallback } from "react";
-import TodoForm from "../../components/TodoForm.js";
 import TodoList from "../../components/TodoList.js";
 import SearchInput from "../../components/SearchInput.js";
 
@@ -34,7 +32,6 @@ const TodoPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // useEffect untuk debounce pencarian tidak berubah
   useEffect(() => {
     const timerId = setTimeout(() => {
       fetchTodos(searchTerm);
@@ -71,31 +68,28 @@ const TodoPage = () => {
   };
 
   const handleUpdateTodo = (id, newTask) => {
-  fetch(`/api/todos/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ task: newTask }), // Baris ini penting untuk mengirim data ke server
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
+    fetch(`/api/todos/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ task: newTask }),
     })
-    .then(() => {
-      // Perbarui state lokal setelah pembaruan berhasil di server
-      setTodos(
-        todos.map((todo) =>
-          todo.id === id ? { ...todo, task: newTask } : todo
-        )
-      );
-    })
-    .catch((err) => console.error("Error updating todo:", err));
-};
-
-  
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(() => {
+        setTodos(
+          todos.map((todo) =>
+            todo.id === id ? { ...todo, task: newTask } : todo
+          )
+        );
+      })
+      .catch((err) => console.error("Error updating todo:", err));
+  };
 
   const handleToggleCompleted = (id, completed) => {
     fetch(`/api/todos/${id}`, {
@@ -129,24 +123,41 @@ const TodoPage = () => {
     <div
       style={{
         padding: "20px",
-        maxWidth: "800px",
+        maxWidth: "900px",
         margin: "0 auto",
         fontFamily: "sans-serif",
       }}
     >
-      <header style={{ textAlign: "center" }}>
-        <h1>Aplikasi Todo List</h1>
+      <header style={{ marginBottom: "20px" }}>
+        <h1 style={{ marginBottom: "15px" }}>Manajemen Tugas</h1>
+
+        <button
+          onClick={() => {
+            const task = prompt("Masukkan tugas baru:");
+            if (task) handleAddTodo(task);
+          }}
+          style={{
+            backgroundColor: "blue",
+            color: "white",
+            border: "none",
+            padding: "8px 15px",
+            borderRadius: "5px",
+            cursor: "pointer",
+            marginBottom: "15px",
+          }}
+        >
+          Tambah
+        </button>
+
         <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <TodoForm onAddTodo={handleAddTodo} />
-        <h2>Daftar Tugas Anda</h2>
-        <TodoList
-          todos={todos}
-          onToggleCompleted={handleToggleCompleted}
-          onDeleteTodo={handleDeleteTodo}
-          onUpdateTodo={handleUpdateTodo}
-          
-        />
       </header>
+
+      <TodoList
+        todos={todos}
+        onToggleCompleted={handleToggleCompleted}
+        onDeleteTodo={handleDeleteTodo}
+        onUpdateTodo={handleUpdateTodo}
+      />
     </div>
   );
 };
