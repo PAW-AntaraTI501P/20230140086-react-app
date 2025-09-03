@@ -1,14 +1,13 @@
 // src/components/TodoList.js
-
 import React from "react";
 import TodoItem from "./TodoItem";
 
-const TodoList = ({ todos, onToggleCompleted, onDeleteTodo, onUpdateTodo }) => {
-  if (todos.length === 0) {
+const TodoList = ({ todos = [], onToggleCompleted, onDeleteTodo, onUpdateTodo }) => {
+  if (!Array.isArray(todos) || todos.length === 0) {
     return <p>Tidak ada tugas yang ditemukan. Silakan tambahkan satu.</p>;
   }
 
-    return (
+  return (
     <table
       style={{
         width: "100%",
@@ -39,6 +38,5 @@ const TodoList = ({ todos, onToggleCompleted, onDeleteTodo, onUpdateTodo }) => {
     </table>
   );
 };
-
 
 export default TodoList;
